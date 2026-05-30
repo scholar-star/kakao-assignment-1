@@ -13,23 +13,99 @@ const completedTodoCount     = document.getElementById('completedTodoCount');
 const remainingTodoCount     = document.getElementById('remainingTodoCount');
 const todoFilterTabGroup     = document.getElementById('todoFilterTabGroup');
 
+// ── 로컬스토리지 키 ────────────────────────────────────────
+const STORAGE_KEY_ITEMS = 'todo_items';
+const STORAGE_KEY_NEXT_ID = 'todo_next_id';
+
+// ── 로컬스토리지 유틸 ──────────────────────────────────────
+
+/**
+ * 현재 todoItems 배열과 nextTodoId를 로컬스토리지에 저장한다.
+ */
+function saveToStorage() {
+  localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(todoItems));
+  localStorage.setItem(STORAGE_KEY_NEXT_ID, JSON.stringify(nextTodoId));
+}
+
+/**
+ * 로컬스토리지에서 데이터를 불러와 todoItems와 nextTodoId를 복원한다.
+ */
+function loadFromStorage() {
+  const savedItems = localStorage.getItem(STORAGE_KEY_ITEMS);
+  const savedNextId = localStorage.getItem(STORAGE_KEY_NEXT_ID);
+
+  if (savedItems) {
+    todoItems = JSON.parse(savedItems);
+  }
+  if (savedNextId) {
+    nextTodoId = JSON.parse(savedNextId);
+  }
+}
+
 // ── 상태 ───────────────────────────────────────────────────
-/** @type {{ id: number, text: string, isCompleted: boolean }[]} */
-// todoitems 배열은 id, text, isCompleted 속성을 가진 객체들의 배열로 관리한다.
+/** @type {{ id: number, text: string, isCompleted: boolean, date: string }[]} */
+// todoitems 배열은 id, text, isCompleted, date 속성을 가진 객체들의 배열로 관리한다.
 let todoItems = [];
 let nextTodoId = 1;
 
 /** 현재 선택된 필터 타입. 'all' | 'active' | 'completed' */
 let currentFilterType = 'all';
 
+/** 현재 선택된 날짜 (YYYY-MM-DD 문자열) */
+let selectedDate = getTodayDateString();
+
 // ── 유틸 ───────────────────────────────────────────────────
+
+/**
+ * 오늘 날짜를 'YYYY-MM-DD' 형식으로 반환한다.
+ * @returns {string}
+ */
+function getTodayDateString() {
+  return toDateString(new Date());
+}
+
+/**
+ * Date 객체를 'YYYY-MM-DD' 형식으로 반환한다.
+ * @param {Date} date
+ * @returns {string}
+ */
+function toDateString(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+/**
+ * 'YYYY-MM-DD' 문자열을 사람이 읽기 좋은 형태로 변환한다.
+ * 예: '2025-06-01' → '2025년 6월 1일 (일)'
+ * @param {string} dateString
+ * @returns {string}
+ */
+function formatDateLabel(dateString) {
+  const [y, m, d] = dateString.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+  return `${y}년 ${m}월 ${d}일 (${dayNames[date.getDay()]})`;
+}
+
+/**
+ * 날짜 네비게이터 UI를 현재 selectedDate 기준으로 갱신한다.
+ */
+function refreshDateNavigator() {
+  document.getElementById('selectedDateLabel').textContent = formatDateLabel(selectedDate);
+  const isToday = selectedDate === getTodayDateString();
+  document.getElementById('todayBadge').classList.toggle('hidden', !isToday);
+}
+
 
 /**
  * 현재 todoItems 기준으로 요약 카운트를 갱신한다.
  */
 function refreshSummaryCount() {
-  const total     = todoItems.length;
-  const completed = todoItems.filter(item => item.isCompleted).length;
+  const dateTodoItems = todoItems.filter(item => item.date === selectedDate);
+  const total     = dateTodoItems.length;
+  const completed = dateTodoItems.filter(item => item.isCompleted).length;
   const remaining = total - completed;
 
   totalTodoCount.innerHTML     = `전체 <strong>${total}</strong>`;
@@ -151,11 +227,13 @@ function handleAddTodo() {
     id: nextTodoId++,
     text: inputText,
     isCompleted: false,
+    date: selectedDate,
   };
 
   todoItems.push(newTodoItem);
   todoTextInput.value = '';
 
+  saveToStorage();
   renderTodoList();
   todoTextInput.focus();
 }
@@ -169,6 +247,7 @@ function handleToggleTodoComplete(todoId) {
   if (!targetItem) return;
 
   targetItem.isCompleted = !targetItem.isCompleted;
+  saveToStorage();
   renderTodoList();
 }
 
@@ -228,6 +307,7 @@ function handleSaveEditTodo(todoId, editInput) {
   if (!targetItem) return;
 
   targetItem.text = updatedText;
+  saveToStorage();
   renderTodoList();
 }
 
@@ -237,6 +317,7 @@ function handleSaveEditTodo(todoId, editInput) {
  */
 function handleDeleteTodo(todoId) {
   todoItems = todoItems.filter(item => item.id !== todoId);
+  saveToStorage();
   renderTodoList();
 }
 
@@ -256,6 +337,8 @@ todoTextInput.addEventListener('input', () => {
 });
 
 // ── 초기 렌더링 ────────────────────────────────────────────
+loadFromStorage();
+refreshDateNavigator();
 renderTodoList();
 
 // ── 필터 ───────────────────────────────────────────────────
@@ -267,9 +350,10 @@ renderTodoList();
  * @returns {{ id: number, text: string, isCompleted: boolean }[]}
  */
 function getFilteredTodoItems() {
-  if (currentFilterType === 'active')    return todoItems.filter(item => !item.isCompleted);
-  if (currentFilterType === 'completed') return todoItems.filter(item =>  item.isCompleted);
-  return todoItems;
+  const dateTodoItems = todoItems.filter(item => item.date === selectedDate);
+  if (currentFilterType === 'active')    return dateTodoItems.filter(item => !item.isCompleted);
+  if (currentFilterType === 'completed') return dateTodoItems.filter(item =>  item.isCompleted);
+  return dateTodoItems;
 }
 
 /**
@@ -294,3 +378,21 @@ todoFilterTabGroup.addEventListener('click', (event) => {
   if (!clickedTab) return;
   handleSelectFilter(clickedTab.dataset.filter);
 });
+
+// ── 날짜 네비게이션 ────────────────────────────────────────
+
+/**
+ * 날짜를 n일 이동한다. (음수: 이전, 양수: 다음)
+ * @param {number} dayOffset
+ */
+function handleShiftDate(dayOffset) {
+  const [y, m, d] = selectedDate.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  date.setDate(date.getDate() + dayOffset);
+  selectedDate = toDateString(date);
+  refreshDateNavigator();
+  renderTodoList();
+}
+
+document.getElementById('prevDayButton').addEventListener('click', () => handleShiftDate(-1));
+document.getElementById('nextDayButton').addEventListener('click', () => handleShiftDate(1));
