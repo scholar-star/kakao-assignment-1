@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-wrapper">
+ 
+      <!-- 헤더 -->
+      <header class="app-header">
+        <h1 class="app-title">TODO</h1>
+        <p class="app-subtitle">오늘 할 일을 기록하세요</p>
+      </header>
+ 
+      <!-- Todo 입력 영역 -->
+      <section class="todo-input-section">
+        <div class="input-group">
+          <input
+            type="text"
+            id="todoTextInput"
+            class="todo-text-input"
+            placeholder="새로운 할 일을 입력하세요..."
+            maxlength="100"
+            autocomplete="off"
+          />
+          <button id="addTodoButton" class="add-todo-button">추가</button>
+        </div>
+        <p id="emptyInputWarningMessage" class="empty-input-warning-message hidden">
+          ⚠ 할 일을 입력한 후 추가해 주세요.
+        </p>
+      </section>
+ 
+      <!-- Todo 카운트 -->
+      <div class="todo-summary-bar">
+        <span id="totalTodoCount" class="summary-count">전체 <strong>0</strong></span>
+        <span id="completedTodoCount" class="summary-count">완료 <strong>0</strong></span>
+        <span id="remainingTodoCount" class="summary-count">남은 항목 <strong>0</strong></span>
+      </div>
+ 
+      <!-- 필터 탭 -->
+      <div class="todo-filter-tab-group" id="todoFilterTabGroup">
+        <button class="todo-filter-tab is-active" data-filter="all">전체</button>
+        <button class="todo-filter-tab" data-filter="active">진행 중</button>
+        <button class="todo-filter-tab" data-filter="completed">완료</button>
+      </div>
+ 
+      <!-- Todo 목록 -->
+      <section class="todo-list-section">
+        <ul id="todoList" class="todo-list">
+          <!-- Todo 아이템은 JS로 동적 생성 -->
+        </ul>
+        <div id="emptyTodoListMessage" class="empty-todo-list-message">
+          <span class="empty-icon">📋</span>
+          <p>등록된 할 일이 없습니다.</p>
+        </div>
+      </section>
+ 
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
