@@ -90,12 +90,80 @@ function formatDateLabel(dateString) {
 }
 
 /**
- * 날짜 네비게이터 UI를 현재 selectedDate 기준으로 갱신한다.
+ * 주어진 날짜가 속한 주의 월요일 날짜를 반환한다.
+ * @param {string} dateString
+ * @returns {Date}
+ */
+function getWeekMonday(dateString) {
+  const [y, m, d] = dateString.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  const day = date.getDay(); // 0=일, 1=월 ... 6=토
+  const diff = (day === 0 ? -6 : 1 - day); // 월요일로 이동
+  date.setDate(date.getDate() + diff);
+  return date;
+}
+
+/**
+ * 주간 날짜 네비게이터 UI를 현재 selectedDate 기준으로 갱신한다.
  */
 function refreshDateNavigator() {
-  document.getElementById('selectedDateLabel').textContent = formatDateLabel(selectedDate);
-  const isToday = selectedDate === getTodayDateString();
-  document.getElementById('todayBadge').classList.toggle('hidden', !isToday);
+  const monday = getWeekMonday(selectedDate);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  const weekRangeLabel = document.getElementById('weekRangeLabel');
+  const fmt = (date) => `${date.getMonth() + 1}월 ${date.getDate()}일`;
+  weekRangeLabel.textContent = `${monday.getFullYear()}년 ${fmt(monday)} – ${fmt(sunday)}`;
+
+  const weekDays = document.getElementById('weekDays');
+  weekDays.replaceChildren();
+
+  const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
+  const todayStr = getTodayDateString();
+
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + i);
+    const dateStr = toDateString(date);
+    const isSelected = dateStr === selectedDate;
+    const isToday = dateStr === todayStr;
+    const count = todoItems.filter(item => item.date === dateStr).length;
+
+    const dayEl = document.createElement('button');
+    dayEl.className = 'week-day-cell' +
+      (isSelected ? ' is-selected' : '') +
+      (isToday ? ' is-today' : '');
+    dayEl.setAttribute('aria-label', formatDateLabel(dateStr));
+    dayEl.dataset.date = dateStr;
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'week-day-name';
+    nameSpan.textContent = dayNames[i];
+
+    const numberSpan = document.createElement('span');
+    numberSpan.className = 'week-day-number';
+    numberSpan.textContent = date.getDate();
+
+    const countSpan = document.createElement('span');
+    countSpan.className = 'week-day-count';
+    countSpan.textContent = count > 0 ? count : '';
+
+    dayEl.appendChild(nameSpan);
+    dayEl.appendChild(numberSpan);
+    dayEl.appendChild(countSpan);
+
+    dayEl.addEventListener('click', () => {
+      selectedDate = dateStr;
+      currentFilterType = 'all';
+      todoFilterTabGroup.querySelectorAll('.todo-filter-tab').forEach(tab => {
+        tab.classList.toggle('is-active', tab.dataset.filter === 'all');
+      });
+      refreshDateNavigator();
+      renderTodoList();
+    });
+
+    weekDays.appendChild(dayEl);
+  }
 }
 
 
@@ -108,9 +176,14 @@ function refreshSummaryCount() {
   const completed = dateTodoItems.filter(item => item.isCompleted).length;
   const remaining = total - completed;
 
-  totalTodoCount.innerHTML     = `전체 <strong>${total}</strong>`;
-  completedTodoCount.innerHTML = `완료 <strong>${completed}</strong>`;
-  remainingTodoCount.innerHTML = `남은 항목 <strong>${remaining}</strong>`;
+  function setSummaryCell(el, label, value) {
+    const strong = document.createElement('strong');
+    strong.textContent = value;
+    el.replaceChildren(document.createTextNode(label + ' '), strong);
+  }
+  setSummaryCell(totalTodoCount,     '전체',     total);
+  setSummaryCell(completedTodoCount, '완료',     completed);
+  setSummaryCell(remainingTodoCount, '남은 항목', remaining);
 }
 
 /**
@@ -193,7 +266,7 @@ function createTodoItemElement(todoItem) {
  * todoItems 배열 전체를 기반으로 목록을 다시 그린다.
  */
 function renderTodoList() {
-  todoList.innerHTML = '';
+  todoList.replaceChildren();
 
   const filteredTodoItems = getFilteredTodoItems();
 
@@ -204,6 +277,7 @@ function renderTodoList() {
 
   refreshSummaryCount();
   refreshEmptyListVisibility();
+  refreshDateNavigator();
 }
 
 // ── 핸들러 ─────────────────────────────────────────────────
@@ -382,17 +456,17 @@ todoFilterTabGroup.addEventListener('click', (event) => {
 // ── 날짜 네비게이션 ────────────────────────────────────────
 
 /**
- * 날짜를 n일 이동한다. (음수: 이전, 양수: 다음)
- * @param {number} dayOffset
+ * 주를 n주 이동한다. (음수: 이전, 양수: 다음)
+ * @param {number} weekOffset
  */
-function handleShiftDate(dayOffset) {
+function handleShiftWeek(weekOffset) {
   const [y, m, d] = selectedDate.split('-').map(Number);
   const date = new Date(y, m - 1, d);
-  date.setDate(date.getDate() + dayOffset);
+  date.setDate(date.getDate() + weekOffset * 7);
   selectedDate = toDateString(date);
   refreshDateNavigator();
   renderTodoList();
 }
 
-document.getElementById('prevDayButton').addEventListener('click', () => handleShiftDate(-1));
-document.getElementById('nextDayButton').addEventListener('click', () => handleShiftDate(1));
+document.getElementById('prevWeekButton').addEventListener('click', () => handleShiftWeek(-1));
+document.getElementById('nextWeekButton').addEventListener('click', () => handleShiftWeek(1));

@@ -21,14 +21,16 @@
         <p class="app-subtitle">오늘 할 일을 기록하세요</p>
       </header>
  
-      <!-- 날짜 네비게이터 -->
-      <div class="date-navigator">
-        <button id="prevDayButton" class="date-nav-button" aria-label="이전 날짜">&#8249;</button>
-        <div class="date-display">
-          <span id="selectedDateLabel" class="date-label"></span>
-          <span id="todayBadge" class="today-badge hidden">오늘</span>
+      <!-- 주간 날짜 네비게이터 -->
+      <div class="week-navigator">
+        <div class="week-header">
+          <button id="prevWeekButton" class="week-nav-button" aria-label="이전 주">&#8249;</button>
+          <span id="weekRangeLabel" class="week-range-label"></span>
+          <button id="nextWeekButton" class="week-nav-button" aria-label="다음 주">&#8250;</button>
         </div>
-        <button id="nextDayButton" class="date-nav-button" aria-label="다음 날짜">&#8250;</button>
+        <div class="week-days" id="weekDays">
+          <!-- 요일 칸은 JS로 동적 생성 -->
+        </div>
       </div>
  
       <!-- Todo 입력 영역 -->

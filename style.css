@@ -95,6 +95,13 @@ body {
 }
  
 /* ================================
+   유틸
+================================ */
+.hidden {
+  display: none;
+}
+
+/* ================================
    입력 영역
 ================================ */
 .todo-input-section {
@@ -165,10 +172,6 @@ body {
   animation: fadeInDown 200ms ease;
 }
  
-.empty-input-warning-message.hidden {
-  display: none;
-}
- 
 /* ================================
    요약 바
 ================================ */
@@ -224,10 +227,6 @@ body {
   font-size: 14px;
 }
  
-.empty-todo-list-message.hidden {
-  display: none;
-}
- 
 .empty-icon {
   font-size: 36px;
   opacity: 0.5;
@@ -265,35 +264,6 @@ body {
   color: var(--color-text-muted);
 }
  
-/* 완료 버튼 */
-.todo-complete-button {
-  height: 32px;
-  padding: 0 12px;
-  border-radius: var(--radius-sm);
-  font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity var(--transition-fast), transform var(--transition-fast);
-  background-color: rgba(62, 207, 142, 0.1);
-  color: var(--color-success);
-  border: 1px solid rgba(62, 207, 142, 0.25);
-}
- 
-.todo-complete-button:hover {
-  background-color: rgba(62, 207, 142, 0.2);
-}
- 
-.todo-item.is-completed .todo-complete-button {
-  background-color: var(--color-success);
-  color: #fff;
-  border-color: var(--color-success);
-}
- 
-.todo-complete-button:active {
-  transform: scale(0.95);
-}
- 
 /* Todo 텍스트 */
 .todo-item-text {
   flex: 1;
@@ -326,19 +296,13 @@ body {
   flex-shrink: 0;
 }
  
-/* 수정 → 완료 → 삭제 순서로 표시 */
-.todo-edit-button   { order: 1; }
-.todo-save-button   { order: 1; }
-.todo-complete-button { order: 2; }
-.todo-delete-button { order: 3; }
- 
+/* ── Todo 버튼 공통 베이스 ── */
+.todo-complete-button,
 .todo-edit-button,
 .todo-save-button,
-.todo-complete-button,
 .todo-delete-button {
   height: 32px;
   padding: 0 12px;
-  border: none;
   border-radius: var(--radius-sm);
   font-family: var(--font-body);
   font-size: 12px;
@@ -346,34 +310,60 @@ body {
   cursor: pointer;
   transition: opacity var(--transition-fast), transform var(--transition-fast);
 }
- 
+
+.todo-complete-button:active,
+.todo-edit-button:active,
+.todo-save-button:active,
+.todo-delete-button:active {
+  transform: scale(0.95);
+}
+
+/* 수정 → 완료 → 삭제 순서로 표시 */
+.todo-edit-button,
+.todo-save-button   { order: 1; }
+.todo-complete-button { order: 2; }
+.todo-delete-button { order: 3; }
+
+/* ── 완료 버튼 ── */
+.todo-complete-button {
+  background-color: rgba(62, 207, 142, 0.1);
+  color: var(--color-success);
+  border: 1px solid rgba(62, 207, 142, 0.25);
+}
+
+.todo-complete-button:hover {
+  background-color: rgba(62, 207, 142, 0.2);
+}
+
+.todo-item.is-completed .todo-complete-button {
+  background-color: var(--color-success);
+  color: #fff;
+  border-color: var(--color-success);
+}
+
+/* ── 수정·저장 버튼 ── */
 .todo-edit-button,
 .todo-save-button {
   background-color: var(--color-surface-raised);
   color: var(--color-primary-light);
   border: 1px solid rgba(103, 43, 224, 0.3);
 }
- 
+
 .todo-edit-button:hover,
 .todo-save-button:hover {
   background-color: var(--color-primary-ghost);
   border-color: var(--color-primary);
 }
- 
+
+/* ── 삭제 버튼 ── */
 .todo-delete-button {
   background-color: rgba(224, 85, 85, 0.1);
   color: var(--color-danger);
   border: 1px solid rgba(224, 85, 85, 0.25);
 }
- 
+
 .todo-delete-button:hover {
   background-color: rgba(224, 85, 85, 0.2);
-}
- 
-.todo-edit-button:active,
-.todo-save-button:active,
-.todo-delete-button:active {
-  transform: scale(0.95);
 }
  
 /* ================================
@@ -414,6 +404,7 @@ body {
     font-size: 14px;
   }
  
+  .todo-complete-button,
   .todo-edit-button,
   .todo-save-button,
   .todo-delete-button {
@@ -423,27 +414,41 @@ body {
 }
  
 /* ================================
-   날짜 네비게이터
+   주간 날짜 네비게이터
 ================================ */
-.date-navigator {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.week-navigator {
   background-color: var(--color-surface);
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 12px 16px;
-  gap: 12px;
+  overflow: hidden;
   transition: border-color var(--transition-base);
 }
 
-.date-navigator:hover {
+.week-navigator:hover {
   border-color: var(--color-border-hover);
 }
 
-.date-nav-button {
-  width: 36px;
-  height: 36px;
+.week-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border);
+  gap: 8px;
+}
+
+.week-range-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.3px;
+  flex: 1;
+  text-align: center;
+}
+
+.week-nav-button {
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -451,7 +456,7 @@ body {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   color: var(--color-text-secondary);
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1;
   cursor: pointer;
   flex-shrink: 0;
@@ -459,45 +464,130 @@ body {
   font-family: var(--font-body);
 }
 
-.date-nav-button:hover {
+.week-nav-button:hover {
   background-color: var(--color-primary-ghost);
   border-color: var(--color-primary);
   color: var(--color-primary-light);
 }
 
-.date-nav-button:active {
+.week-nav-button:active {
   transform: scale(0.92);
 }
 
-.date-display {
-  flex: 1;
+.week-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.week-day-cell {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
+  gap: 4px;
+  padding: 10px 4px;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+  font-family: var(--font-body);
 }
 
-.date-label {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  letter-spacing: 0.3px;
-  text-align: center;
+.week-day-cell:last-child {
+  border-right: none;
 }
 
-.today-badge {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--color-primary-light);
+.week-day-cell:hover {
   background-color: var(--color-primary-ghost);
-  border: 1px solid rgba(103, 43, 224, 0.3);
-  border-radius: var(--radius-full);
-  padding: 2px 10px;
+}
+
+.week-day-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-muted);
   letter-spacing: 0.5px;
 }
 
-.today-badge.hidden {
-  display: none;
+.week-day-number {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  line-height: 1;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.week-day-count {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-primary-light);
+  min-height: 14px;
+  background-color: var(--color-primary-ghost);
+  border-radius: var(--radius-full);
+  padding: 0 5px;
+  line-height: 14px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.week-day-cell:has(.week-day-count:not(:empty)) .week-day-count {
+  opacity: 1;
+}
+
+/* 선택된 날짜 */
+.week-day-cell.is-selected .week-day-number {
+  background-color: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 2px 10px var(--color-primary-glow);
+}
+
+.week-day-cell.is-selected .week-day-name {
+  color: var(--color-primary-light);
+}
+
+/* 오늘 날짜 */
+.week-day-cell.is-today:not(.is-selected) .week-day-number {
+  background-color: rgba(62, 207, 142, 0.15);
+  color: var(--color-success);
+  border: 1.5px solid rgba(62, 207, 142, 0.4);
+}
+
+.week-day-cell.is-today .week-day-name {
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+/* 토요일(6번째), 일요일(7번째) 컬러 */
+.week-day-cell:nth-child(6) .week-day-name,
+.week-day-cell:nth-child(6) .week-day-number {
+  color: rgba(100, 180, 255, 0.85);
+}
+
+.week-day-cell:nth-child(7) .week-day-name,
+.week-day-cell:nth-child(7) .week-day-number {
+  color: rgba(255, 110, 110, 0.85);
+}
+
+.week-day-cell:nth-child(6).is-selected .week-day-number,
+.week-day-cell:nth-child(7).is-selected .week-day-number {
+  color: #fff;
+}
+
+@media (max-width: 480px) {
+  .week-day-number {
+    font-size: 15px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .week-range-label {
+    font-size: 12px;
+  }
 }
 
 
