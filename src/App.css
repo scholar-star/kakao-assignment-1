@@ -1,0 +1,108 @@
+/* ================================================================
+   style.css
+   ▸ Tailwind arbitrary value로 표현 불가한 것만 남긴 최소 CSS
+     - CSS 변수 (색상·폰트·그림자)
+     - body / #root 중앙 정렬 & 배경
+     - 헤더 폰트 (Bebas Neue — 커스텀 폰트 패밀리)
+     - @keyframes 애니메이션 (Tailwind 미지원)
+     - :nth-child 선택자 (토/일 색상 — Tailwind 미지원)
+     - :empty 선택자 (배지 숨김 — Tailwind 미지원)
+     - .todo-item.is-completed 중첩 선택자
+     - .warning-msg 경고 애니메이션
+================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+/* ── CSS 변수 ─────────────────────────────────────────────── */
+:root {
+  --color-primary:        #672be0;
+  --color-primary-dark:   #4f1fb5;
+  --color-primary-light:  #8a55e8;
+  --color-primary-ghost:  rgba(103, 43, 224, 0.08);
+  --color-primary-glow:   rgba(103, 43, 224, 0.25);
+  --color-bg:             #0e0e14;
+  --color-surface:        #16161f;
+  --color-surface-raised: #1e1e2a;
+  --color-border:         rgba(255, 255, 255, 0.07);
+  --color-border-hover:   rgba(103, 43, 224, 0.5);
+  --color-text-primary:   #f0eeff;
+  --color-text-secondary: #9d97b8;
+  --color-text-muted:     #5a5472;
+  --color-success:        #3ecf8e;
+  --color-warning:        #f5a623;
+  --color-danger:         #e05555;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body:    'Noto Sans KR', sans-serif;
+}
+
+/* ── 리셋 ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── body — 배경 + 중앙 정렬 ─────────────────────────────── */
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;   /* App div 가운데 배치 */
+  align-items: flex-start;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 70% 10%, rgba(103, 43, 224, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 20% 80%, rgba(103, 43, 224, 0.07) 0%, transparent 60%);
+}
+
+/* #root 가 body flex 자식으로 전체 너비를 채워야 중앙 정렬이 동작 */
+#root { width: 100%; display: flex; justify-content: center; }
+
+/* ── 헤더 폰트 (Bebas Neue — Tailwind에서 직접 지정 불가) ── */
+.app-title {
+  font-family: var(--font-display);
+  font-size: 72px;
+  letter-spacing: 6px;
+  line-height: 1;
+  color: var(--color-primary-light);
+  text-shadow: 0 0 40px var(--color-primary-glow);
+}
+.app-subtitle {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin-top: 6px;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+}
+
+/* ── 애니메이션 ───────────────────────────────────────────── */
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* todo-item 진입 애니메이션 */
+.todo-item { animation: slideInUp 220ms ease; }
+
+/* 경고 메시지 애니메이션 */
+.warning-msg { animation: fadeInDown 200ms ease; }
+
+/* ── :nth-child 토/일 색상 (Tailwind 미지원) ─────────────── */
+.week-day-cell:nth-child(6) .day-name,
+.week-day-cell:nth-child(6) .day-number { color: rgba(100, 180, 255, 0.85); }
+.week-day-cell:nth-child(7) .day-name,
+.week-day-cell:nth-child(7) .day-number { color: rgba(255, 110, 110, 0.85); }
+/* 선택됐을 때 흰색 override */
+.week-day-cell.is-selected .day-number,
+.week-day-cell:nth-child(6).is-selected .day-number,
+.week-day-cell:nth-child(7).is-selected .day-number { color: #fff; }
+
+/* ── :empty 배지 숨김 (Tailwind 미지원) ──────────────────── */
+.day-count:empty      { opacity: 0; }
+.day-count:not(:empty){ opacity: 1; }
+
+/* ── 반응형 ───────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .app-title { font-size: 52px; }
+}
