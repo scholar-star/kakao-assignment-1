@@ -12,7 +12,7 @@ export function useTodos() {
   const [todoItems, setTodoItems] = useState(initialState.todoItems); // 전체 할 일 목록 상태.
   const [nextTodoId, setNextTodoId] = useState(initialState.nextTodoId); // 다음 할 일 추가시 지정할 ID 
   const [selectedDate, setSelectedDate] = useState(() => {
-    return localStorage.getItem('selectedDate') ?? getTodayDateString();
+    return localStorage.getItem('selectedDate') ?? getTodayDateString(); // 왼쪽 값이 없다면 오른쪽으로 채우기.
   }); // 선택된 날짜 - 기본 : 오늘
   const [filterType, setFilterType] = useState('all'); // 필터 상태
 
