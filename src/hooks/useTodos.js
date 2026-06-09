@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useEffect } from 'react';
 import { getTodayDateString } from '../utils/dateUtils';
 import { saveToStorage, loadFromStorage } from '../utils/storageUtils';
 
@@ -10,8 +11,14 @@ const initialState = loadFromStorage();
 export function useTodos() { 
   const [todoItems, setTodoItems] = useState(initialState.todoItems); // 전체 할 일 목록 상태.
   const [nextTodoId, setNextTodoId] = useState(initialState.nextTodoId); // 다음 할 일 추가시 지정할 ID 
-  const [selectedDate, setSelectedDate] = useState(getTodayDateString()); // 선택된 날짜 - 기본 : 오늘
+  const [selectedDate, setSelectedDate] = useState(() => {
+    return localStorage.getItem('selectedDate') ?? getTodayDateString();
+  }); // 선택된 날짜 - 기본 : 오늘
   const [filterType, setFilterType] = useState('all'); // 필터 상태
+
+  useEffect(() => {
+    localStorage.setItem('selectedDate', selectedDate);
+  }, [selectedDate]);
 
   /** 상태 저장 헬퍼 */
   const persist = useCallback((items, nextId) => {
@@ -30,7 +37,7 @@ export function useTodos() {
     const newNextId = nextTodoId + 1;
     setTodoItems(updated);
     setNextTodoId(newNextId);
-    persist(updated, newNextId);
+    persist(updated, newNextId); // LocalStorage에 저장
   }, [todoItems, nextTodoId, selectedDate, persist]);
 
   /** 완료 상태 토글 */
@@ -52,11 +59,11 @@ export function useTodos() {
   }, [todoItems, nextTodoId, persist]);
 
   /** 삭제 */
-  const deleteTodo = useCallback((todoId) => {
+  const deleteTodo = useCallback((todoId) => { // 함수로서 고정, 재사용 가능하도록 함.
     const updated = todoItems.filter(item => item.id !== todoId);
     setTodoItems(updated);
     persist(updated, nextTodoId);
-  }, [todoItems, nextTodoId, persist]);
+  }, [todoItems, nextTodoId, persist]); // persist 함수의 최신 상태 반영.
 
   /** 필터링된 todo 목록 */
   const filteredItems = todoItems
